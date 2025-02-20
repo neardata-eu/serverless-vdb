@@ -34,8 +34,9 @@ class Orchestrator():
         # ObjStorage -> Pravega or Kinesis
         for key in keys:
             index_ids = master.get_centroid_ids(key, n)[0] if self.config.implementation == "centroids" else list(range(self.config.num_index))
+            key_list = key.tolist()
             for id in index_ids:  
-                dict[id].append ([query_id, key.tolist()])                                 
+                dict[id].append ([query_id, key_list])                                 
             query_id += 1
                 
         end = time.time()                
@@ -141,6 +142,8 @@ class Orchestrator():
         
         # Get centroids
         centroids, shuffle_times = self.shuffle_queries(queries, n)
+        print(shuffle_times)
+        quit()
         
         # Map
         map_keys, map_iterdata_times = self.create_map_iterdata(centroids, self.config.query_batch_size)
