@@ -142,8 +142,6 @@ class Orchestrator():
         
         # Get centroids
         centroids, shuffle_times = self.shuffle_queries(queries, n)
-        print(shuffle_times)
-        quit()
         
         # Map
         map_keys, map_iterdata_times = self.create_map_iterdata(centroids, self.config.query_batch_size)
