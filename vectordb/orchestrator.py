@@ -139,18 +139,24 @@ class Orchestrator():
     def search(self, id_query, queries, n, k_search, k_result):
                 
         start = time.time()
+
+        if self.config.implementation == "blocks":
+            init = time.time()
+            queries_key = f"queries_{self.config.dataset}_{self.config.num_index}.csv"
+            self.function_executor.storage.put_object(bucket=self.config.storage_bucket, key=queries_key, body=orjson.dumps(queries.tolist()))
+            index_to_compute = [ ((queries_key, list(range(i, min(i + self.config.query_batch_size, self.config.num_index)))), k_search, self.config) for i in range(0, self.config.num_index, self.config.query_batch_size) ]
+            map_iterdata_times = time.time() - init
         
-        # Get centroids
-        centroids, shuffle_times = self.shuffle_queries(queries, n)
-        
-        # Map
-        map_keys, map_iterdata_times = self.create_map_iterdata(centroids, self.config.query_batch_size)
+        if self.config.implementation == "centroids":
+            # Get centroids
+            centroids, shuffle_times = self.shuffle_queries(queries, n)
+            # Map
+            map_keys, map_iterdata_times = self.create_map_iterdata(centroids, self.config.query_batch_size)
+            index_to_compute = [(x, k_search, self.config) for x in map_keys]
 
         if self.function_executor.config["lithops"]["backend"] == "k8s":
             self.function_executor.config["k8s"]["runtime_cpu"] = self.config.search_map_cpus
-            self.function_executor.config["k8s"]["runtime_memory"] = self.config.search_map_mem
-            
-        index_to_compute = [(x, k_search, self.config) for x in map_keys]
+            self.function_executor.config["k8s"]["runtime_memory"] = self.config.search_map_mem        
         
         self.function_executor.map(get_mult_neighours, index_to_compute, runtime_memory=self.config.search_map_mem)
         map_futures_res = self.function_executor.get_result()
@@ -173,8 +179,13 @@ class Orchestrator():
         end = time.time()
         
         timers = {}
-    
-        timers[f'{id_query}_shuffle_{self.config.implementation}'] = shuffle_times
+
+        timers[f'{id_query}_shuffle_{self.config.implementation}'] = []
+        timers[f'{id_query}_map_iterdata_{self.config.implementation}'] = []
+
+        if self.config.implementation == "centroids":
+            timers[f'{id_query}_shuffle_{self.config.implementation}'] = shuffle_times
+        
         timers[f'{id_query}_map_iterdata_{self.config.implementation}'] = map_iterdata_times
         timers[f'{id_query}_map_{self.config.implementation}'] = map_times
         timers[f'{id_query}_reduce_iterdata_{self.config.implementation}'] = reduce_iterdata_times

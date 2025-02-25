@@ -12,10 +12,18 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
         
     res_queries = defaultdict(list)
     
-    start_d_queries = time.time()
-    queries_json = storage.get_object(bucket=config.storage_bucket, key=queries_key).decode("UTF-8")
-    queries_json = orjson.loads(queries_json)
-    end_d_queries = time.time()
+    if config.implementation == "centroids":
+        start_d_queries = time.time()
+        queries_json = storage.get_object(bucket=config.storage_bucket, key=queries_key).decode("UTF-8")
+        queries_json = orjson.loads(queries_json)
+        end_d_queries = time.time()
+    
+    if config.implementation == "blocks":
+        start_d_queries = time.time()
+        queries = storage.get_object(bucket=config.storage_bucket, key=queries_key[0])
+        queries = orjson.loads(queries)
+        queries_json = {f'indexes/{config.dataset}/{config.implementation}/{config.num_index}/centroid_{key}.ann': queries for key in queries_key[1]}
+        end_d_queries = time.time()
     
     all_index = []
     all_index_memory = []
@@ -38,16 +46,18 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
         all_index_memory.append(end_index_memory - start_index_memory)
         
         start_a_queries = time.time()
-        #for query_data in queries:
-        #    d, i = index.search(np.array([query_data[1]]), k)
-        #    res_queries[query_data[0]].append([d.tolist(), i.tolist()])
-        
-        query_vectors = [query_data[1] for query_data in queries]
-        
-        d, i = index.search(np.array(query_vectors), k)
 
-        for x in range(len(queries)):
-            res_queries[queries[x][0]].append([d[x].tolist(), i[x].tolist()])
+        if config.implementation == "centroids":
+            query_vectors = [query_data[1] for query_data in queries]
+            d, i = index.search(np.array(query_vectors), k)
+            for x in range(len(queries)):
+                res_queries[queries[x][0]].append([d[x].tolist(), i[x].tolist()])
+
+        if config.implementation == "blocks":
+            d, i = index.search(np.array(queries), k)
+            for x in range(len(queries)):
+                res_queries[x].append([d[x].tolist(), i[x].tolist()])
+        
         
         end_a_queries = time.time()
         
@@ -60,7 +70,6 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
         concat_res = []
         
         for dists, ids in res:
-            #for dist, id in zip(dists[0], ids[0]):
             for dist, id in zip(dists, ids):
                 concat_res.append([id, dist])
         best_vectors = sorted(concat_res, key=lambda x: x[1], reverse=False)[:k]
