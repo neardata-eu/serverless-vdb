@@ -66,12 +66,15 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
     start_reduce_queries = time.time()
     final_results = {}
 
+    filtered_vectors = set()
     for key, res in res_queries.items():
         concat_res = []
         
         for dists, ids in res:
             for dist, id in zip(dists, ids):
-                concat_res.append([id, dist])
+                if id not in filtered_vectors:
+                    concat_res.append([id, dist])
+                    filtered_vectors.add(id)
         best_vectors = sorted(concat_res, key=lambda x: x[1], reverse=False)[:k]
     
         final_results[key] = best_vectors
@@ -92,13 +95,17 @@ def reduce_mult_neighbours(reduce_key, storage: Storage, config):
     k = res_json["k"]
     
     final_results = []
-    
+    filtered_vectors = set()
+
     for res in results:
         concat_res = []
         for id, dist in res[1]:
-            concat_res.append((id, dist))
+            if id not in filtered_vectors:
+                concat_res.append((id, dist))
+                filtered_vectors.add(id)
         best_vectors = sorted(concat_res, key=lambda x: x[1], reverse=False)[:k]
-        final_results.append([id for id, _ in best_vectors])
+        ids = [id for id, _ in best_vectors]
+        final_results.append(ids)
     
     end = time.time()
     

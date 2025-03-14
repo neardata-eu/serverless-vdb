@@ -16,9 +16,14 @@ class CentroidMaster():
         vector = vector.reshape(1, -1)
         _, indices = self.index.search(vector, k)
         return indices
+    
+    def get_centroid_ids_with_distance(self, vector, k=1):
+        """Get the nearest centroids to a vector"""
+        vector = vector.reshape(1, -1)
+        distances, indices = self.index.search(vector, k)
+        return distances, indices
             
-            
-    def generate_csvs(self, ids, vectors, num_centroids):
+    def generate_csvs(self, ids, vectors, num_centroids, replication, labels):
         """Generate CSV files (in memory) for each centroid and add the vectors to them"""
         writers = []
         buffers = []
@@ -27,10 +32,18 @@ class CentroidMaster():
             csv_writer = csv.writer(csv_buffer)
             writers.append(csv_writer)
             buffers.append(csv_buffer)
-            
-        for id, vector in zip(ids, vectors):
-            centroid_id = self.get_centroid_ids(vector)[0][0]
-            vector = ' '.join(map(str, vector))
-            writers[centroid_id].writerow([id, vector])
-            
+        
+        if replication == 1:
+            for id, vector, label in zip(ids, vectors, labels):
+                vector = ' '.join(map(str, vector))
+                writers[label].writerow([id, vector])
+        else:
+            for id, vector, label in zip(ids, vectors, labels):
+                distances, centroid_ids = self.get_centroid_ids_with_distance(vector, replication)
+                vector = ' '.join(map(str, vector))
+                
+                writers[label].writerow([id, vector])
+                for centroid, distance in zip(centroid_ids[0], distances[0]):
+                    if centroid != label and distance <= 0.95:
+                        writers[centroid].writerow([id, vector])
         return buffers

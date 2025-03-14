@@ -38,10 +38,12 @@ if __name__ == "__main__":
     parser.add_argument("--k_result", default=10, help="Number of neighbours to search for. Should be the same as k_search")
     parser.add_argument("--skip_init", action="store_true", default=False, help="Skip vector database initialization")
     parser.add_argument("--skip_query", action="store_true", default=False, help="Skip vector database querying")
+    parser.add_argument("--skip_global_kmeans", action="store_true", default=False, help="Skip global balanced K-means to find centroids")
     parser.add_argument("--impl", default="blocks", help="Implementation: blocks or centroids")
     parser.add_argument("--dataset", default="glove", help="Name of the dataset to be used")
     
     ## Custom algorithm arguments
+    parser.add_argument("--replication_percentage", default=0, help="Percentage of top nearest centroids for vector replication when assigning vectors to their corresponding centroid on centroids implementation.")
     parser.add_argument("--num_index", default=16, help="Number of centroids to divide the vectors into")
     parser.add_argument("--num_centroids_search", default=4, help="Number of indexes to search for in the custom algorithm")
     parser.add_argument("--k", default=4096, help="Number of clusters to create within each partition in the custom algorithm")
@@ -66,9 +68,11 @@ if __name__ == "__main__":
         k_search = int(args.k_search),
         k_result = int(args.k_result),
         skip_init = args.skip_init,
+        skip_kmeans = args.skip_global_kmeans,
         implementation = args.impl,
         
         # Custom algorithm arguments
+        replication = int(int(args.replication_percentage) * int(args.num_index) / 100) or 1,
         num_index = int(args.num_index),
         num_centroids_search = int(args.num_centroids_search),
         k = int(args.k),

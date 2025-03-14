@@ -9,9 +9,11 @@ class SvlessVectorDBParams:
     k_search: int = 5
     k_result: int = 5
     skip_init: bool = False
+    skip_kmeans: bool = False
     implementation: str = "blocks"
     
     # Custom algorithm arguments
+    replication: int = 1
     num_index: int = 4
     num_centroids_search: int = 4
     k: int = 4096
@@ -21,6 +23,7 @@ class SvlessVectorDBParams:
     # Storage
     storage_bucket: str = None
     centroids_key: str = "centroids.json"
+    labels_key: str = "labels.json"
     
     # Runtime
     index_mem: int = 8192

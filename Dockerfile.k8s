@@ -37,7 +37,8 @@ RUN pip install --upgrade setuptools six pip \
         psutil \
         faiss-cpu \
         pandas \
-        orjson
+        orjson \
+        k-means-constrained
 
 ENV PYTHONUNBUFFERED TRUE
 

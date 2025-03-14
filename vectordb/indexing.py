@@ -1,6 +1,7 @@
 import faiss
 import numpy as np
 import csv
+from k_means_constrained import KMeansConstrained
 
 from vectordb.config import SvlessVectorDBParams
 from .centroids import CentroidMaster
@@ -15,21 +16,37 @@ import logging
 def create_global_index(vectors, params, storage: Storage):
     """Distribute vectors into different centroids by using a Master index"""
     
-    faiss.omp_set_num_threads(128)
     ## Download vectors
     start = time.time()
     
-    ## Use faiss to generate centroids
-    #index = faiss.index_factory(params.features, f"IVF{params.num_index},Flat")
-    index = faiss.Kmeans(vectors.shape[1], params.num_index, niter=20, verbose=True, spherical=True)
-    index.train(vectors)
-    #centroids = index.quantizer.reconstruct_n(0, params.num_index)
-    centroids = index.centroids
+    # Use KMeansConstrained to generate centroids of a balanced KMeans cluster
+    clf = KMeansConstrained(
+        n_clusters=params.num_index,
+        size_min=int(len(vectors)/params.num_index*0.9),
+        size_max=int(len(vectors)/params.num_index*1.1),
+        random_state=0,
+        init='k-means++',
+        max_iter=300,
+        tol=0.0001,
+        verbose=False,
+        n_jobs=128
+    )
+    clf.fit(vectors)
+    centroids = clf.cluster_centers_
     
+
+    #2025-03-11T13:31:47 - Started clustering
+    #2025-03-11T14:38:36 - Finished clustering
+
     ## Upload centroids
     serialized_data = orjson.dumps(centroids.tolist())
 
     storage.put_object(bucket=params.storage_bucket, key=f'indexes/{params.dataset}/{params.implementation}/{params.num_index}/{params.centroids_key}', body=serialized_data)
+    
+    labels = clf.labels_
+    serialized_data = orjson.dumps(labels.tolist())
+    storage.put_object(bucket=params.storage_bucket, key=f'indexes/{params.dataset}/{params.implementation}/{params.num_index}/{params.labels_key}', body=serialized_data)
+
     end = time.time()
         
     return end-start
@@ -58,8 +75,13 @@ def distribute_vectors_centroids(id, obj, params, storage: Storage):
         centroids = np.array(orjson.loads(res))
         master = CentroidMaster(centroids, params.features)
         
+        # Get labels from global K-means
+        res = storage.get_object(bucket=params.storage_bucket, key=f'indexes/{params.dataset}/{params.implementation}/{params.num_index}/{params.labels_key}')
+        labels = np.array(orjson.loads(res))
+        labels = [labels[x] for x in ids]
+
         # Distribute vectors across the different centroids
-        writers = master.generate_csvs(np.array(ids), np.array(vectors), len(centroids))
+        writers = master.generate_csvs(np.array(ids), np.array(vectors), len(centroids), params.replication, labels)
 
         ## Upload csvs to storage
         for i, buffer in enumerate(writers):
@@ -226,10 +248,12 @@ def initialize_database(filename, params: SvlessVectorDBParams, fexec, num_worke
     
     if params.implementation == "centroids":
         ## Generate centroids
-        global_index_time = create_global_index(np.array(vectors), params, fexec.storage)
-        fexec.map(distribute_vectors_centroids, vectors_key, extra_args=[params], obj_chunk_size=int(512 * pow(2,20)), runtime_memory=params.index_mem)
+        if not params.skip_kmeans:
+            global_index_time = create_global_index(np.array(vectors), params, fexec.storage)
+        else:
+            global_index_time = 0
+        fexec.map(distribute_vectors_centroids, vectors_key, extra_args=[params], obj_chunk_size=int(64 * pow(2,20)), runtime_memory=params.index_mem)
         distribute_vectors_time = fexec.get_result()
-    
     ## Generate an index for each centroid with the vectors assigned to it
     if params.implementation == "centroids":
         all_index = list(range(params.num_index))

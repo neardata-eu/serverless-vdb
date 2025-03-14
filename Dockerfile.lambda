@@ -47,7 +47,8 @@ RUN pip install --upgrade --ignore-installed pip wheel six setuptools \
         tblib \
         psutil \
         faiss-cpu \
-        orjson
+        orjson \
+        k-means-constrained
 
 # Set working directory to function root directory
 WORKDIR ${FUNCTION_DIR}
