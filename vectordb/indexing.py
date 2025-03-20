@@ -246,7 +246,7 @@ def initialize_database(filename, params: SvlessVectorDBParams, fexec, num_worke
         del results
         combine = time.time()
         
-        load_dataset_time = [time.time() - init, download-init, prepare_chunks-download, get_vectors-prepare_chunks, combine-get_vectors])
+        load_dataset_time = [time.time() - init, download-init, prepare_chunks-download, get_vectors-prepare_chunks, combine-get_vectors]
         
     logging.info("Starting indexing")
     
