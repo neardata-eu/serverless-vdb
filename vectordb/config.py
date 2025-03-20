@@ -6,10 +6,12 @@ class SvlessVectorDBParams:
     # General arguments
     dataset: str = "glove"
     features: int = 64
+    num_vectors: int = -1
     k_search: int = 5
     k_result: int = 5
     skip_init: bool = False
     skip_kmeans: bool = False
+    kmeans_version: str = "unbalanced"
     implementation: str = "blocks"
     
     # Custom algorithm arguments

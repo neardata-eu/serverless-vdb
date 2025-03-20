@@ -22,11 +22,15 @@ python3 example.py --impl centroids --num_index 8 --num_centroids_search 4
 | num_index              | Number of centroids/blocks into which the vectors are divided/grouped.  | No       |    4     |
 | num_centroids_search   | Number of centroids to query.             | No (Centroids)      | 4 |
 | features               | Number of vectors features/dimensions.    | No       |         |
+| num_vectors               | Number of vectors in the dataset (Only needed on centroids implementation).    | Yes       |   -1      |
 | k_search               | Number of neighbours to be searched.      | No       |    10     |
 | k_result               | Number of neighbours to be returned.      | No       |    10     |
 | storage_bucket         | Storage bucket name.               | No      |  |
 | k                      | Number of centroids within the index.     | Yes      | 4096 |
 | n_probe                | Number of neighbors searched in the index. | Yes      | 1024 |
+| skip_global_kmeans              | Skip global K-means on whole dataset for centroids implementation (only for centroids and labels generation).      | Yes       |    False     |
+| kmeans_version              | Implementation of K-means algorithm. It can either be faiss K-means (unbalanced) or a contrained, balanced K-means      | Yes       |    unbalanced     |
+| replication_percentage              | Percentage of centroid replication of vectors during indexing phase.      | Yes       |    False     |
 | skip_init              | Skip vector database initialization.      | Yes       |    False     |
 | skip_query              | Skip querying the vector database.      | Yes       |    False     |
 | dataset              | Name of the dataset to be used.      | No       |    glove     |

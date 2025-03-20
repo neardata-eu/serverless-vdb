@@ -36,9 +36,6 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
         
         all_index.append(end_index - start_index)
         
-        res = {}
-        res[key] = []
-        
         start_index_memory = time.time()
         index = faiss.read_index('/tmp/index.ann')
         end_index_memory = time.time()
@@ -66,18 +63,23 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
     start_reduce_queries = time.time()
     final_results = {}
 
-    filtered_vectors = set()
     for key, res in res_queries.items():
         concat_res = []
         
         for dists, ids in res:
             for dist, id in zip(dists, ids):
-                if id not in filtered_vectors:
-                    concat_res.append([id, dist])
-                    filtered_vectors.add(id)
-        best_vectors = sorted(concat_res, key=lambda x: x[1], reverse=False)[:k]
+                concat_res.append([id, dist])
+
+        seen = set()
+        sorted_s = sorted(concat_res, key=lambda x: x[1], reverse=False)
+
+        best_vectors = []
+        for id, dist in sorted_s:
+            if id not in seen:
+                best_vectors.append([id, dist])
+                seen.add(id)      
     
-        final_results[key] = best_vectors
+        final_results[key] = best_vectors[:k]
         
     end_reduce_queries = time.time()
 
@@ -95,17 +97,19 @@ def reduce_mult_neighbours(reduce_key, storage: Storage, config):
     k = res_json["k"]
     
     final_results = []
-    filtered_vectors = set()
 
     for res in results:
         concat_res = []
         for id, dist in res[1]:
-            if id not in filtered_vectors:
-                concat_res.append((id, dist))
-                filtered_vectors.add(id)
-        best_vectors = sorted(concat_res, key=lambda x: x[1], reverse=False)[:k]
-        ids = [id for id, _ in best_vectors]
-        final_results.append(ids)
+            concat_res.append((id, dist))
+        seen = set()
+        sorted_s = sorted(concat_res, key=lambda x: x[1], reverse=False)
+        best_vectors = []
+        for id, dist in sorted_s:
+            if id not in seen:
+                best_vectors.append(id)
+                seen.add(id)
+        final_results.append(best_vectors[:k])
     
     end = time.time()
     
