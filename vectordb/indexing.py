@@ -133,7 +133,6 @@ def generate_index_centroids(index_ids, params, storage: Storage):
             index.add_with_ids(np.array(vectors), np.array(ids))
             
         else:
-            print(len(vectors))
             index = faiss.IndexFlatL2(params.features)
             index = faiss.IndexIDMap(index)
             index.add_with_ids(np.array(vectors), np.array(ids))
