@@ -38,7 +38,8 @@ RUN pip install --upgrade setuptools six pip \
         faiss-cpu \
         pandas \
         orjson \
-        k-means-constrained
+        k-means-constrained \
+        "numpy<2"
 
 ENV PYTHONUNBUFFERED TRUE
 

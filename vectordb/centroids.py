@@ -3,6 +3,7 @@ import numpy as np
 import csv
 import io
 import math
+from collections import defaultdict
 
 class CentroidMaster():
     def __init__(self, centroids, dimensions):
@@ -19,7 +20,7 @@ class CentroidMaster():
         distances, indices = self.index.search(vector, k)
         return distances, indices
             
-    def generate_csvs(self, ids, vectors, num_centroids, replication, labels):
+    def generate_csvs(self, ids, vectors, num_centroids, replication_threshold, labels):
         """Generate CSV files (in memory) for each centroid and add the vectors to them"""
         writers = []
         buffers = []
@@ -28,23 +29,24 @@ class CentroidMaster():
             csv_writer = csv.writer(csv_buffer)
             writers.append(csv_writer)
             buffers.append(csv_buffer)
-        vector_count = 0
-        if replication == 1:
+        vector_count = defaultdict(int)
+        if replication_threshold == 1:
             for id, vector, label in zip(ids, vectors, labels):
                 vector = ' '.join(map(str, vector))
                 writers[label].writerow([id, vector])
-                vector_count += 1
+                vector_count[label] += 1
         else:
             for id, vector, label in zip(ids, vectors, labels):
-                max_distance = 2 * np.linalg.norm(vector - self.centroids[label])
-                distances, centroid_ids = self.get_centroid_ids(vector, replication)
+                max_distance = replication_threshold * np.linalg.norm(vector - self.centroids[label])
+                distances, centroid_ids = self.get_centroid_ids(vector, len(self.centroids))
                 vector = ' '.join(map(str, vector))
                 writers[label].writerow([id, vector])
+                vector_count[label] += 1
                 for centroid, distance in zip(centroid_ids[0], distances[0]):
                     if math.sqrt(distance) > max_distance:
                         break
                     if centroid != label:
                         writers[centroid].writerow([id, vector])
-                        vector_count += 1
+                        vector_count[label] += 1
 
         return buffers, vector_count

@@ -45,7 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", default="glove", help="Name of the dataset to be used")
     
     ## Custom algorithm arguments
-    parser.add_argument("--replication_percentage", default=0, help="Percentage of top nearest centroids for vector replication when assigning vectors to their corresponding centroid on centroids implementation.")
+    parser.add_argument("--replication_threshold", default=1, help="Percentage of closest centroid distance to vector for indexing replication when assigning vectors to their corresponding centroid on centroids implementation.")
     parser.add_argument("--num_index", default=16, help="Number of centroids to divide the vectors into")
     parser.add_argument("--num_centroids_search", default=4, help="Number of indexes to search for in the custom algorithm")
     parser.add_argument("--k", default=4096, help="Number of clusters to create within each partition in the custom algorithm")
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         implementation = args.impl,
         
         # Custom algorithm arguments
-        replication = int(int(args.replication_percentage) * int(args.num_index) / 100) or 1,
+        replication = float(args.replication_threshold),
         num_index = int(args.num_index),
         num_centroids_search = int(args.num_centroids_search),
         k = int(args.k),

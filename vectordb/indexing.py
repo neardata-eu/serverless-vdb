@@ -13,6 +13,9 @@ import pandas as pd
 import multiprocessing
 import logging
 
+from collections import Counter
+import statistics
+
 def create_global_index(vectors, params, storage: Storage):
     """Distribute vectors into different centroids by using a Master index"""
     
@@ -259,6 +262,13 @@ def initialize_database(filename, params: SvlessVectorDBParams, fexec, num_worke
         futures = fexec.map(distribute_vectors_centroids, vectors_key, extra_args=[params], obj_chunk_number=16, runtime_memory=params.index_mem)
         output = fexec.get_result()
         distribute_vectors_time, indexed_vectors = map(list, zip(*output))
+
+        aggregated = Counter()
+        for d in indexed_vectors:
+            aggregated.update(d)
+        indexed_vectors = dict(aggregated)
+        average_vectors = statistics.mean(list(indexed_vectors.values()))
+        std_dev_vectors = statistics.stdev(list(indexed_vectors.values()))
         lambda_invocation_distribute = [f.stats["worker_func_start_tstamp"] - f.stats["host_job_create_tstamp"] for f in futures]
         
     ## Generate an index for each centroid with the vectors assigned to it
@@ -286,8 +296,10 @@ def initialize_database(filename, params: SvlessVectorDBParams, fexec, num_worke
         timers[f'global_index_{params.implementation}'] = global_index_time if not params.skip_kmeans else 0
         timers[f'distribute_vectors_{params.implementation}'] = distribute_vectors_time
         timers[f'distribute_vectors_invocation_{params.implementation}'] = lambda_invocation_distribute
-        timers[f'total_generated_vectors'] = sum(indexed_vectors)
-        
+        timers[f'total_generated_vectors'] = sum(indexed_vectors.values())
+        timers[f'generated_vectors'] = list(indexed_vectors.values())
+        timers[f'avg_generated_vectors'] = average_vectors
+        timers[f'std_dev_generated_vectors'] = std_dev_vectors
     
     timers[f'generate_index_{params.implementation}'] = generate_index_time
     timers[f'generate_index_invocation_{params.implementation}'] = lambda_invocation_indexing

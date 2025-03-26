@@ -30,7 +30,7 @@ python3 example.py --impl centroids --num_index 8 --num_centroids_search 4
 | n_probe                | Number of neighbors searched in the index. | Yes      | 1024 |
 | skip_global_kmeans              | Skip global K-means on whole dataset for centroids implementation (only for centroids and labels generation).      | Yes       |    False     |
 | kmeans_version              | Implementation of K-means algorithm. It can either be faiss K-means (unbalanced) or a contrained, balanced K-means      | Yes       |    unbalanced     |
-| replication_percentage              | Percentage of centroid replication of vectors during indexing phase.      | Yes       |    False     |
+| replication_threshold              | Percentage of closest centroid distance to vector for indexing replication when assigning vectors to their corresponding centroid on centroids implementation.      | Yes       |    False     |
 | skip_init              | Skip vector database initialization.      | Yes       |    False     |
 | skip_query              | Skip querying the vector database.      | Yes       |    False     |
 | dataset              | Name of the dataset to be used.      | No       |    glove     |
