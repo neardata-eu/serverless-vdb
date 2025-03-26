@@ -196,7 +196,7 @@ if __name__ == "__main__":
         'features' : int(args.features),
         'k_search' : int(args.k_search),
         'num_index' : int(args.num_index),
-        'replication_percentage': int(args.replication_percentage),
+        'replication_threshold': float(args.replication_threshold),
         'num_centroids_search' : int(args.num_centroids_search),
         'k' : int(args.k),
         'kmeans_version': args.kmeans_version,
