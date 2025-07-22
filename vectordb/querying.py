@@ -4,6 +4,7 @@ import orjson
 from lithops import Storage
 import time
 from collections import defaultdict
+import os
 
 def get_mult_neighours(queries_key, k, storage: Storage, config):
     """Get the nearest neighbours from an index"""
@@ -28,16 +29,16 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
     all_index = []
     all_index_memory = []
     all_a_queries = []
-    
-    for key, queries in queries_json.items():
+    for file_idx, (key, queries) in enumerate(queries_json.items()):
         start_index = time.time()
-        storage.download_file(config.storage_bucket, key, '/tmp/index.ann')
+        storage.download_file(config.storage_bucket, key, f'/tmp/index_{file_idx}.ann')
         end_index = time.time()
         
         all_index.append(end_index - start_index)
-        
+
+    for file_idx, (key, queries) in enumerate(queries_json.items()):
         start_index_memory = time.time()
-        index = faiss.read_index('/tmp/index.ann')
+        index = faiss.read_index(f'/tmp/index_{file_idx}.ann')
         end_index_memory = time.time()
         
         all_index_memory.append(end_index_memory - start_index_memory)
@@ -59,6 +60,7 @@ def get_mult_neighours(queries_key, k, storage: Storage, config):
         end_a_queries = time.time()
         
         all_a_queries.append(end_a_queries - start_a_queries)
+        os.remove(f'/tmp/index_{file_idx}.ann')
      
     start_reduce_queries = time.time()
     final_results = {}
