@@ -1,4 +1,4 @@
-# Serverless Vector Database
+# Stateless Serverless Vector Database
 
 ## Requirements
 
