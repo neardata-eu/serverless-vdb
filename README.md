@@ -118,3 +118,27 @@ As explained in configuration section down below, query_batch_size parameter wil
 | search_map_memory              | Amount of memory of the get_neighbours map functions      | Yes       |    9216     |
 | search_reduce_memory              | Amount of memory of the reduce_neighbours map functions      | Yes       |    2048     |
 
+## Citation policy
+
+Please cite as:
+> Daniel Barcelona-Pons, Raúl Gracia-Tinedo, Albert Cañadilla-Domingo, Xavier Roca-Canals, and Pedro García-López. 2025. Building Stateless Serverless Vector DBs via Block-based Data Partitioning. Proc. ACM Manag. Data 3, 6 (SIGMOD), Article 304 (December 2025), 25 pages. https://doi.org/10.1145/3769769
+
+```
+@article{barcelonapons2025building,
+    author = {Daniel Barcelona-Pons and Raúl Gracia-Tinedo and Albert Cañadilla-Domingo and Xavier Roca-Canals and Pedro García-López},
+    title = {Building Stateless Serverless Vector DBs via Block-based Data Partitioning},
+    year = {2025},
+    issue_date = {December 2025},
+    publisher = {Association for Computing Machinery},
+    address = {New York, NY, USA},
+    volume = {3},
+    number = {6 (SIGMOD)},
+    url = {https://doi.org/10.1145/3769769},
+    doi = {10.1145/3769769},
+    journal = {Proc. ACM Manag. Data},
+    month = dec,
+    articleno = {204},
+    numpages = {25},
+    keywords = {Vector Databases, Serverless Functions, Data Partitioning, Indexing}
+}
+```
