@@ -163,7 +163,6 @@ test/
 plots/
 benchmarks/*.json
 
-*.csv
 .lithops_config*
 results_*.json
 *.tar*
