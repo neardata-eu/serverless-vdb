@@ -1,7 +1,7 @@
 import faiss
 import numpy as np
 import csv
-from k_means_constrained import KMeansConstrained
+#from k_means_constrained import KMeansConstrained
 
 from vectordb.config import SvlessVectorDBParams
 from .centroids import CentroidMaster
@@ -23,21 +23,22 @@ def create_global_index(vectors, params, storage: Storage):
     start = time.time()
     
     if params.kmeans_version == "balanced":
+        pass
         # Use KMeansConstrained to generate centroids of a balanced KMeans cluster
-        clf = KMeansConstrained(
-            n_clusters=params.num_index,
-            size_min=int(len(vectors)/params.num_index*0.9),
-            size_max=int(len(vectors)/params.num_index*1.1),
-            random_state=0,
-            init='k-means++',
-            max_iter=300,
-            tol=0.0001,
-            verbose=False,
-            n_jobs=128
-        )
-        clf.fit(vectors)
-        centroids = clf.cluster_centers_
-        labels = clf.labels_
+        # clf = KMeansConstrained(
+        #     n_clusters=params.num_index,
+        #     size_min=int(len(vectors)/params.num_index*0.9),
+        #     size_max=int(len(vectors)/params.num_index*1.1),
+        #     random_state=0,
+        #     init='k-means++',
+        #     max_iter=300,
+        #     tol=0.0001,
+        #     verbose=False,
+        #     n_jobs=128
+        # )
+        # clf.fit(vectors)
+        # centroids = clf.cluster_centers_
+        # labels = clf.labels_
 
     elif params.kmeans_version == "unbalanced":
         faiss.omp_set_num_threads(128)
